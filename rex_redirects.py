@@ -120,7 +120,7 @@ def write_nginx_map(uri_map, out):
 
 
 @click.command()
-@click.argument('rex-host')
+@click.argument('rex-host', envvar='REX_HOST')
 def update_rex_redirects(rex_host):
     release_json_url = get_rex_release_json_url(rex_host)
     release_data = requests.get(release_json_url).json()
@@ -168,7 +168,7 @@ def generate_cnx_uris(book_id):
 
 
 @click.command()
-@click.argument('rex-host')
+@click.argument('rex-host', envvar='REX_HOST')
 def generate_cnx_uris_for_rex_books(rex_host):
     """This outputs a list of CNX URIs to stdout.
     These are URIs that should redirect to REX.
