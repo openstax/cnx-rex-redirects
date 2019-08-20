@@ -22,7 +22,7 @@ Developer Usage
 
 Usage::
 
-  python rex_redirect.py --help
+  rex_redirect --help
 
 License
 -------
