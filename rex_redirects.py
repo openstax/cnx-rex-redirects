@@ -12,7 +12,6 @@ requests.mount('https://', adapter)
 
 here = Path(__file__).parent
 CNX_HOST = 'archive.cnx.org'
-MAP_FILEPATH = here.resolve().parent / 'roles/webview/files/etc/nginx/uri-maps/rex-uris.map'
 
 
 def get_rex_release_json_url(host):
