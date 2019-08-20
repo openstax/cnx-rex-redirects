@@ -116,23 +116,20 @@ def generate_nginx_uri_mappings(book):
 
 def write_nginx_map(uri_map, out):
     for orig_uri, dest_uri in uri_map:
-        out.write(f'~{orig_uri}    {dest_uri};\n'.encode())
+        out.write(f'~{orig_uri}    {dest_uri};\n')
 
 
 @click.command()
 @click.argument('rex-host', envvar='REX_HOST')
-def update_rex_redirects(rex_host):
+@click.option('-o', '--output', type=click.File(mode='w'))
+def update_rex_redirects(rex_host, output):
     release_json_url = get_rex_release_json_url(rex_host)
     release_data = requests.get(release_json_url).json()
     books = [book for book in release_data['books']]
-    if MAP_FILEPATH.exists():
-        click.echo("Removing existing map")
-        MAP_FILEPATH.unlink()
     for book in books:
-        click.echo(f"Write entries for {book}.")
+        click.echo(f"Write entries for {book}.", err=True)
         book_uri_map = generate_nginx_uri_mappings(book)
-        with MAP_FILEPATH.open('ab') as fb:
-            write_nginx_map(book_uri_map, out=fb)
+        write_nginx_map(book_uri_map, out=output)
 
 
 def generate_cnx_uris(book_id):
@@ -169,7 +166,8 @@ def generate_cnx_uris(book_id):
 
 @click.command()
 @click.argument('rex-host', envvar='REX_HOST')
-def generate_cnx_uris_for_rex_books(rex_host):
+@click.option('-o', '--output', type=click.File(mode='w'))
+def generate_cnx_uris_for_rex_books(rex_host, output):
     """This outputs a list of CNX URIs to stdout.
     These are URIs that should redirect to REX.
 
@@ -181,7 +179,7 @@ def generate_cnx_uris_for_rex_books(rex_host):
     release_data = requests.get(release_json_url).json()
     for book in release_data['books']:
         for uri in generate_cnx_uris(book):
-            click.echo(uri)
+            output.write(uri + '\n')
 
 
 @click.group()
