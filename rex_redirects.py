@@ -125,9 +125,9 @@ def write_nginx_map(uri_map, out):
 
 
 @click.command()
-@click.option('-o', '--output', type=click.File(mode='w'))
 @click.pass_context
-def update_rex_redirects(ctx, output):
+def update_rex_redirects(ctx):
+    output = ctx.parent.params['output']
     release_json_url = get_rex_release_json_url(ctx.parent.params['openstax_host'])
     release_data = requests.get(release_json_url).json()
     books = [book for book in release_data['books']]
@@ -174,9 +174,8 @@ def generate_cnx_uris(book_id):
 
 
 @click.command()
-@click.option('-o', '--output', type=click.File(mode='w'))
 @click.pass_context
-def generate_cnx_uris_for_rex_books(ctx, output):
+def generate_cnx_uris_for_rex_books(ctx):
     """This outputs a list of CNX URIs to stdout.
     These are URIs that should redirect to REX.
 
@@ -184,6 +183,7 @@ def generate_cnx_uris_for_rex_books(ctx, output):
     They exercise a number of variations the URI can be represented as.
 
     """
+    output = ctx.parent.params['output']
     release_json_url = get_rex_release_json_url(ctx.parent.params['openstax_host'])
     release_data = requests.get(release_json_url).json()
     for book in release_data['books']:
@@ -194,6 +194,7 @@ def generate_cnx_uris_for_rex_books(ctx, output):
 @click.group()
 @click.option('--openstax-host', envvar='OPENSTAX_HOST', default='openstax.org')
 @click.option('--archive-host', envvar='ARCHIVE_HOST', default='archive.cnx.org')
+@click.option('-o', '--output', type=click.File(mode='w'))
 def main(*args, **kwargs):
     pass
 
