@@ -17,12 +17,16 @@ Via PyPI::
 
   pip install cnx-rex-redirects
 
-Developer Usage
----------------
+Usage
+-----
 
-Usage::
+Usage help::
 
   rex_redirect --help
+
+Example usage::
+
+  rex_redirects --openstax-host staging.openstax.org --archive-host archive-staging.cnx.org -o - generate-cnx-uris-for-rex-books > uris.txt
 
 License
 -------
