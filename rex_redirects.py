@@ -11,7 +11,8 @@ requests.mount('https://', adapter)
 
 
 here = Path(__file__).parent
-CNX_HOST = 'archive.cnx.org'
+default_openstax_host = 'openstax.org'
+default_archive_host = 'archive.cnx.org'
 
 
 def get_rex_release_json_url(host):
@@ -20,9 +21,9 @@ def get_rex_release_json_url(host):
     return f'https://{host}/rex/releases/{release_id}/rex/release.json'
 
 
-def get_book_slug(book_id):
+def get_book_slug(host, book_id):
     url = (
-        "https://openstax.org/apps/cms/api/v2/pages/"
+        f"https://{host}/apps/cms/api/v2/pages/"
         f"?type=books.Book&fields=cnx_id&format=json&cnx_id={book_id}"
     )
     book = requests.get(url).json()['items'][0]
@@ -78,31 +79,31 @@ def expand_tree_node(node):
         result['short_id'] = exc.id
     return result
 
-def get_book_tree(book_id):
+def get_book_tree(host, book_id):
     """Returns a list of nodes in a book's tree."""
-    resp = requests.get(f'https://{CNX_HOST}/contents/{book_id}.json')
+    resp = requests.get(f'https://{host}/contents/{book_id}.json')
     metadata = resp.json()
     return metadata['tree']
 
-def get_book_nodes(book_id):
+def get_book_nodes(host, book_id):
     """Returns a list of nodes in a book's tree."""
-    for x in flatten_tree(get_book_tree(book_id)):
+    for x in flatten_tree(get_book_tree(host, book_id)):
         yield expand_tree_node(x)
 
 
-def generate_nginx_uri_mappings(book):
+def generate_nginx_uri_mappings(cnx_host, openstax_host, book):
     """\
     This creates the nginx uri map to be used inside the nginx
     configuration's `map` block.
 
     """
-    tree = get_book_tree(book)
+    tree = get_book_tree(cnx_host, book)
     non_preface_tree = [ x for x in tree['contents'] if 'contents' in x ][0]
     intro_page = first_leaf(non_preface_tree)
 
-    nodes = list(get_book_nodes(book))
+    nodes = list(get_book_nodes(cnx_host, book))
     book_node = nodes[0]
-    book_slug = get_book_slug(book)
+    book_slug = get_book_slug(openstax_host, book)
 
     uri_mappings = [
         # Book URL redirects to the first page of the REX book
@@ -124,15 +125,19 @@ def write_nginx_map(uri_map, out):
 
 
 @click.command()
-@click.argument('rex-host', envvar='REX_HOST')
 @click.option('-o', '--output', type=click.File(mode='w'))
-def update_rex_redirects(rex_host, output):
-    release_json_url = get_rex_release_json_url(rex_host)
+@click.pass_context
+def update_rex_redirects(ctx, output):
+    release_json_url = get_rex_release_json_url(ctx.parent.params['openstax_host'])
     release_data = requests.get(release_json_url).json()
     books = [book for book in release_data['books']]
     for book in books:
         click.echo(f"Write entries for {book}.", err=True)
-        book_uri_map = generate_nginx_uri_mappings(book)
+        book_uri_map = generate_nginx_uri_mappings(
+            ctx.parent.params['archive_host'],
+            ctx.parent.params['openstax_host'],
+            book,
+        )
         write_nginx_map(book_uri_map, out=output)
 
 
@@ -169,9 +174,9 @@ def generate_cnx_uris(book_id):
 
 
 @click.command()
-@click.argument('rex-host', envvar='REX_HOST')
 @click.option('-o', '--output', type=click.File(mode='w'))
-def generate_cnx_uris_for_rex_books(rex_host, output):
+@click.pass_context
+def generate_cnx_uris_for_rex_books(ctx, output):
     """This outputs a list of CNX URIs to stdout.
     These are URIs that should redirect to REX.
 
@@ -179,7 +184,7 @@ def generate_cnx_uris_for_rex_books(rex_host, output):
     They exercise a number of variations the URI can be represented as.
 
     """
-    release_json_url = get_rex_release_json_url(rex_host)
+    release_json_url = get_rex_release_json_url(ctx.parent.params['openstax_host'])
     release_data = requests.get(release_json_url).json()
     for book in release_data['books']:
         for uri in generate_cnx_uris(book):
@@ -187,7 +192,9 @@ def generate_cnx_uris_for_rex_books(rex_host, output):
 
 
 @click.group()
-def main():
+@click.option('--openstax-host', envvar='OPENSTAX_HOST', default='openstax.org')
+@click.option('--archive-host', envvar='ARCHIVE_HOST', default='archive.cnx.org')
+def main(*args, **kwargs):
     pass
 
 
