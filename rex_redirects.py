@@ -1,8 +1,13 @@
 import click
-import requests
+import requests as requestslib
 from pathlib import Path
 
 from cnxcommon import ident_hash
+
+
+requests = requestslib.Session()
+adapter = requestslib.adapters.HTTPAdapter(max_retries=5)
+requests.mount('https://', adapter)
 
 
 here = Path(__file__).parent
