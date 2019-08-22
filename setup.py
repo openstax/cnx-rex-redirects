@@ -44,6 +44,7 @@ setup(
     author='OpenStax',
     url="https://github.com/openstax",
     license='LGPL',
+    py_modules=['rex_redirects'],
     entry_points="""\
     [console_scripts]
     rex_redirects = rex_redirects:main
