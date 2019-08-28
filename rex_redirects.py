@@ -141,14 +141,14 @@ def update_rex_redirects(ctx):
         write_nginx_map(book_uri_map, out=output)
 
 
-def generate_cnx_uris(book_id):
+def generate_cnx_uris(archive_host, book_id):
     """\
     Generates a list of URIs for a cnx book. The URIs are several variations
     of the same page. This includes URIs with and without versions
     that use both the long and short id as well as the combination of the two.
 
     """
-    nodes = list(get_book_nodes(book_id))
+    nodes = list(get_book_nodes(archive_host, book_id))
     book_node = nodes[0]
 
     short_book_id = book_node['short_id']
@@ -187,7 +187,7 @@ def generate_cnx_uris_for_rex_books(ctx):
     release_json_url = get_rex_release_json_url(ctx.parent.params['openstax_host'])
     release_data = requests.get(release_json_url).json()
     for book in release_data['books']:
-        for uri in generate_cnx_uris(book):
+        for uri in generate_cnx_uris(ctx.parent.params['archive_host'], book):
             output.write(uri + '\n')
 
 
