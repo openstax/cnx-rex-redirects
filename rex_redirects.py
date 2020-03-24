@@ -59,10 +59,15 @@ def rex_uri(book, page):
 
 
 def cnx_uri_regex(book, page):
+    # We want to match any query string, with the exception of if it's
+    # ?minimal=true as the latter is used to avoid redirects for our Android
+    # applications: https://github.com/openstax/cnx/issues/343
+    query_params_regex = r"(\?(?!.*minimal=true)(.+=.+[&]?)+)?"
+
     if page is None:
-        uri_regex = f"/contents/({book['id']}|{book['short_id']})(@[.\d]+)?(/[-%\w\d]+)?$"
+        uri_regex = f"/contents/({book['id']}|{book['short_id']})(@[.\d]+)?(/[-%\w\d]+)?{query_params_regex}$"
     else:
-        uri_regex = f"/contents/({book['id']}|{book['short_id']})(@[.\d]+)?:({page['id']}|{page['short_id']})(@[.\d]+)?(/[-%\w\d]+)?$"
+        uri_regex = f"/contents/({book['id']}|{book['short_id']})(@[.\d]+)?:({page['id']}|{page['short_id']})(@[.\d]+)?(/[-%\w\d]+)?{query_params_regex}$"
     return uri_regex
 
 
