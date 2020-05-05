@@ -40,7 +40,7 @@ SETUP_KWARGS = dict(
 
 setup(
     name='cnx-rex-redirects',
-    version='1.0.0',
+    version='1.0.1',
     author='OpenStax',
     url="https://github.com/openstax",
     license='LGPL',
