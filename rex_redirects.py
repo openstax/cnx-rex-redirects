@@ -11,11 +11,9 @@ requests = requestslib.Session()
 adapter = requestslib.adapters.HTTPAdapter(max_retries=5)
 requests.mount('https://', adapter)
 
-
 here = Path(__file__).parent
 default_openstax_host = 'openstax.org'
 default_archive_host = 'archive.cnx.org'
-
 
 def get_rex_release_json_url(host):
     env_url = f'https://{host}/rex/environment.json'
@@ -43,6 +41,7 @@ def flatten_tree(tree):
         for x in tree['contents']:
             for y in flatten_tree(x):
                 yield y
+
 
 def first_leaf(tree):
     """Find the first leaf node (Page) in the tree."""
@@ -86,6 +85,7 @@ def expand_tree_node(node):
         result['short_id'] = exc.id
     return result
 
+
 def get_book_tree(host, book_id):
     """Returns a list of nodes in a book's tree."""
 
@@ -94,6 +94,7 @@ def get_book_tree(host, book_id):
 
     metadata = resp.json()
     return metadata['tree']
+
 
 def get_book_nodes(host, book_id):
     """Returns a list of nodes in a book's tree."""
