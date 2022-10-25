@@ -1,0 +1,17 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: update-rex-redirects",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/rex_redirects.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "args": ["--archive-host=archive.cnx.org", "--openstax-host=openstax.org", "update-rex-redirects"]
+        }
+    ]
+}

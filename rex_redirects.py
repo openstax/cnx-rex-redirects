@@ -141,7 +141,6 @@ def update_rex_redirects(ctx):
     release_json_url = get_rex_release_json_url(ctx.parent.params['openstax_host'])
     release_data = requests.get(release_json_url).json()
     books = [book for book in release_data['books']]
-    skipped_books = []
     for book in books:
         click.echo(f"Write entries for {book}.", err=True)
         # New books are no longer created in Legacy. These cause an error so we skip.
