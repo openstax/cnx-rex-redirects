@@ -1,4 +1,6 @@
 import click
+import os
+import sys
 import requests as requestslib
 from pathlib import Path
 
@@ -9,11 +11,9 @@ requests = requestslib.Session()
 adapter = requestslib.adapters.HTTPAdapter(max_retries=5)
 requests.mount('https://', adapter)
 
-
 here = Path(__file__).parent
 default_openstax_host = 'openstax.org'
 default_archive_host = 'archive.cnx.org'
-
 
 def get_rex_release_json_url(host):
     env_url = f'https://{host}/rex/environment.json'
@@ -41,6 +41,7 @@ def flatten_tree(tree):
         for x in tree['contents']:
             for y in flatten_tree(x):
                 yield y
+
 
 def first_leaf(tree):
     """Find the first leaf node (Page) in the tree."""
@@ -84,11 +85,16 @@ def expand_tree_node(node):
         result['short_id'] = exc.id
     return result
 
+
 def get_book_tree(host, book_id):
     """Returns a list of nodes in a book's tree."""
+
     resp = requests.get(f'https://{host}/contents/{book_id}.json')
+    resp.raise_for_status()
+
     metadata = resp.json()
     return metadata['tree']
+
 
 def get_book_nodes(host, book_id):
     """Returns a list of nodes in a book's tree."""
@@ -138,16 +144,22 @@ def update_rex_redirects(ctx):
     books = [book for book in release_data['books']]
     for book in books:
         click.echo(f"Write entries for {book}.", err=True)
-        book_uri_map = generate_nginx_uri_mappings(
-            ctx.parent.params['archive_host'],
-            ctx.parent.params['openstax_host'],
-            book,
-        )
+        # New books are no longer created in Legacy. These cause an error so we skip.
+        try:
+            book_uri_map = generate_nginx_uri_mappings(
+                ctx.parent.params['archive_host'],
+                ctx.parent.params['openstax_host'],
+                book,
+            )
+        except requestslib.exceptions.HTTPError:
+            click.echo(f"Book UUID {book} could not be found. Skipping ...")
+            continue
+        
         write_nginx_map(book_uri_map, out=output)
 
 
 def generate_cnx_uris(archive_host, book_id):
-    """\
+    """
     Generates a list of URIs for a cnx book. The URIs are several variations
     of the same page. This includes URIs with and without versions
     that use both the long and short id as well as the combination of the two.
@@ -174,8 +186,6 @@ def generate_cnx_uris(archive_host, book_id):
         yield f"/contents/{book_id}@2.99:{node['short_id']}@0/{node['slug']}"
         yield f"/contents/{book_node['short_id']}@15.123:{node['id']}@999/{node['slug']}"
         yield f"/contents/{book_node['short_id']}@0.0:{node['short_id']}@654321/{node['slug']}"
-
-
 
 
 @click.command()
