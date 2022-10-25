@@ -1,0 +1,8 @@
+# Ignore editor specific files
+/.vscode
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info
